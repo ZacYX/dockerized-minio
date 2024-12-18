@@ -1,0 +1,41 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+      #environment:
+      #- MINIO_SERVER_URL=https://minio.goxmore.com
+        #-  MINIO_BROWSER_REDIRECT_URL=https://minio.goxmore.com
+      # Read credentials from a .env file
+        #- MINIO_ROOT_USER=${MINIO_ROOT_USER}
+        #- MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    env_file:
+      - .env
+    volumes:
+      - minio_data:/data # Mount for storage
+        #- ./.minio:/root/.minio     #Cert dir in ./.minio/certs
+        #- ./certs:/opt/minio/certs
+    ports:
+      - 9000:9000 # MinIO Console/API
+      - 9001:9001  # MinIO Management Console
+    command: server /data --console-address :9001 #--certs-dir /opt/minio/certs
+    restart: always
+
+    networks:
+      - docker-network
+
+  mc:
+    image: minio/mc:latest
+    container_name: minio-mc
+    depends_on:
+    - minio
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+
+# Optional: Define default network
+networks:
+  docker-network:
+    external: true
+
+volumes:
+  minio_data:
+    driver: local
